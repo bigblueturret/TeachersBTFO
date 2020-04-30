@@ -1,8 +1,8 @@
 import os
+import re
 import datetime
 import platform
 import subprocess
-import webbrowser
 
 host = platform.system()
 if host == "Windows":
@@ -67,9 +67,7 @@ user_browser = int(input("Which browser do you want to use?\n1) Chrome\n2) Firef
 # commands to run on host regardless of browser
 if host_int == 0:
     path = subprocess.check_output("echo %appdata%", shell=True).decode('UTF-8')
-    print(path)
     path = path.replace("\\", "/").replace("\r\n", "")
-    print(path)
     if not os.path.exists(path + "/teacherBTFO/"):
         os.mkdir(path + "/teacherBTFO/")
 elif host_int == 1:
@@ -87,16 +85,18 @@ if user_browser == 1:
             if not os.path.exists(path + "/teacherBTFO/chromedriver.exe"):
                 print("error during driver download")
                 exit(1)
-        driver = webdriver.Chrome(path + "/teacherBTFO/chromedriver.exe")
+        driver = webdriver.Chrome(executable_path=path + "/teacherBTFO/chromedriver.exe")
 elif user_browser == 2:
     if host_int == 0:
         if not os.path.exists(path + "/teacherBTFO/geckodriver.exe"):
-            subprocess.call("curl https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-win64.zip -o %APPDATA%/teacherBTFO/firefoxdriver.zip")
-            subprocess.call("powershell.exe Expand-Archive -LiteralPath %APPDATA%/teacherBTFO/firefoxdriver.zip -DestinationPath %APPDATA%/teacherBTFO/")
-            if not os.path.exists(path + "/teacherBTFO/geckodriver.exe"):
+            extracted_url = subprocess.check_output("curl https://github.com/mozilla/geckodriver/releases/", shell=True).decode('UTF-8')
+            extracted_url = "https://github.com" + re.findall(r"\/mozilla\/geckodriver\/releases\/download/v[0-9].[0-9][0-9].[0-9]/geckodriver-v[0-9].[0-9][0-9].[0-9]-win64.zip", extracted_url)[0]
+            subprocess.call("curl -L " + extracted_url + " -o %APPDATA%/teacherBTFO/firefoxdriver.zip", shell=True)
+            subprocess.call("powershell.exe Expand-Archive -LiteralPath %APPDATA%/teacherBTFO/firefoxdriver.zip -DestinationPath %APPDATA%/teacherBTFO/", shell=True)
+            if not os.path.exists(path + "/teacherBTFO/"):
                 print("error during driver download")
                 exit(1)
-        driver = webdriver.Firefox(path + "/teacherBTFO/geckodriver.exe")
+        driver = webdriver.Firefox(executable_path=path + "/teacherBTFO/geckodriver.exe")
 elif user_browser == 3:
     input("Safari is untested and may not work. Press enter to continue.")
     if host_int != 2:
